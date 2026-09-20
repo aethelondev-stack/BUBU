@@ -1,0 +1,27 @@
+BUBU Source-Available & Commercial License (Version 1.0)
+Copyright (c) 2026 aethelondev-stack
+
+1. Definitions
+- "Software" refers to the BUBU (AI Studio Context-Processing Worker) codebase, scripts, documentation, schemas, and associated artifacts.
+- "Licensor" refers to the copyright holder: aethelondev-stack.
+- "Commercial Use" means any use, reproduction, distribution, integration, or deployment of the Software, in whole or in part, for direct or indirect commercial advantage, monetary compensation, revenue generation, or incorporation into a commercial product, proprietary software package, or paid SaaS/cloud offering.
+- "Non-Commercial Use" means personal use, hobbyist projects, academic study, educational exploration, security research, and internal non-monetized evaluation that does not generate commercial revenue or charge end users.
+
+2. Grant of Non-Commercial License
+Subject to the terms and conditions of this License, the Licensor hereby grants to you a perpetual, worldwide, non-exclusive, royalty-free license to inspect, download, compile, execute, test, modify, and distribute the Software solely for Non-Commercial Use.
+
+3. Conditions of Use
+- Attribution: All copies, substantial portions, and derivative works of the Software must retain the above copyright notice, this list of conditions, and the disclaimer below in all source files, documentation, and user-facing credits.
+- Modifications: Any modifications made for Non-Commercial Use remain governed by the terms of this License.
+- Integrity: You may not remove or alter any copyright notices, disclaimers, or licensing references contained within the Software.
+
+4. Commercial Use Restrictions & Licensing Requirement
+Commercial Use of the Software, whether standalone or integrated into other applications, coding agents, IDE extensions, developer tools, platforms, or software-as-a-service (SaaS) products, is STRICTLY PROHIBITED without a separate, express, written Commercial License granted by the Licensor (aethelondev-stack).
+
+If you, your company, or your organization wish to use, embed, or offer the Software for Commercial Use, you must contact the Licensor via GitHub (https://github.com/aethelondev-stack) to obtain a valid commercial licensing agreement prior to deployment or commercial release.
+
+5. Disclaimer of Warranty & Limitation of Liability
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE LICENSOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+6. Notice
+This license document is provided for this project and does not constitute formal legal advice.

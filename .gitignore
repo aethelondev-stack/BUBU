@@ -1,0 +1,46 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+credentials*
+secrets*
+*.keystore
+*.jks
+*.p12
+*.pfx
+
+# AI Worker project configuration (template config.json.example is tracked)
+.ai-worker/config.json
+
+# AI Worker runtime files (keep directories via .gitkeep)
+.ai-worker/cache/*
+!.ai-worker/cache/.gitkeep
+.ai-worker/reports/*
+!.ai-worker/reports/.gitkeep
+.ai-worker/quota/*
+!.ai-worker/quota/.gitkeep
+
+# Python cache & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.tmp
+*.log
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE and OS metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

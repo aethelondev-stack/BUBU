@@ -1,0 +1,11 @@
+{
+  "worker_mode": "auto",
+  "model": "gemini-3.6-flash",
+  "daily_request_budget": 1400,
+  "rpm_budget": 12,
+  "auto_threshold_files": 3,
+  "auto_threshold_bytes": 15000,
+  "max_retries": 3,
+  "max_file_bytes": 1048576,
+  "max_total_bytes": 10485760
+}
