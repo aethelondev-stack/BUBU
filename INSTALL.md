@@ -30,33 +30,33 @@ your-project-root/
 
 ---
 
-### Step 2: Get Your Gemini API Key
+### Step 2: Configure Your LLM Provider & Credentials
 
+BUBU supports **Google Gemini (Default)** and any **OpenAI-Compatible** API (OpenAI, DeepSeek, OpenRouter, local Ollama):
+
+#### Option A: Google Gemini (Recommended & Default - Free Tier Available)
 1. Navigate to [Google AI Studio](https://aistudio.google.com/app/apikey).
 2. Sign in with your Google account and click **Create API Key**.
-3. Choose one of two methods to configure your key:
+3. Copy `.env.example` to `.env` in your project root:
+   ```bash
+   cp .env.example .env
+   ```
+4. Open `.env` and set:
+   ```env
+   AI_WORKER_PROVIDER=gemini
+   GEMINI_API_KEY=YOUR_ACTUAL_GEMINI_API_KEY
+   ```
+   *(BUBU's `.gitignore` ensures this file is never committed).*
 
-#### Method A: Project `.env` File (Recommended for Local Projects)
-Copy `.env.example` to `.env` in your project root:
-```bash
-cp .env.example .env
-```
-Open `.env` and paste your key:
+#### Option B: OpenAI-Compatible Provider (OpenAI, DeepSeek, Ollama)
+In your `.env` file, configure:
 ```env
-GEMINI_API_KEY=YOUR_ACTUAL_GEMINI_API_KEY
+AI_WORKER_PROVIDER=openai_compatible
+OPENAI_API_KEY=your_actual_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
 ```
-*(BUBU's `.gitignore` ensures this file is never committed).*
-
-#### Method B: User / System Environment Variable (Recommended for Multi-Project Use)
-**PowerShell (Windows):**
-```powershell
-[System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'YOUR_ACTUAL_GEMINI_API_KEY', 'User')
-```
-**Bash / Zsh (macOS / Linux):**
-```bash
-echo 'export GEMINI_API_KEY="YOUR_ACTUAL_GEMINI_API_KEY"' >> ~/.zshrc
-source ~/.zshrc
-```
+*(For local Ollama on `http://localhost:11434/v1`, no API key is required).*
 
 ---
 
@@ -75,6 +75,7 @@ Expected output:
   "worker_version": "1.0.0",
   "project_root": "/path/to/your-project",
   "worker_mode": "auto",
+  "provider": "gemini",
   "model": "gemini-3.6-flash",
   "quota": {
     "requests": 0

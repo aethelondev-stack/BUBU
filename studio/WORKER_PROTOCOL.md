@@ -1,6 +1,6 @@
 # Worker Protocol & Output Contract (WORKER_PROTOCOL.md)
 
-This document defines the CLI contract, supported task types, input formatting rules, and the structured JSON output specification for `ai_worker.py`.
+This document defines the CLI contract, supported task types, input formatting rules, provider selection flags, and the structured JSON output specification for `ai_worker.py`.
 
 ---
 
@@ -21,7 +21,7 @@ This document defines the CLI contract, supported task types, input formatting r
 
 ## 2. Line-Numbered Source Code Injection
 
-Target files are injected into Gemini with 4-digit zero-padded line numbers rather than raw text:
+Target files are injected into LLM providers with 4-digit zero-padded line numbers rather than raw text:
 
 ```text
 ==================== FILE: src/core/PlaybackEngine.kt ====================
@@ -49,6 +49,8 @@ The worker prints **strictly valid JSON** to `stdout`. Diagnostic logs, progress
   "task_id": "debug-20260921-a1b2c3",
   "status": "success",
   "task_type": "DEBUG",
+  "provider": "gemini",
+  "model": "gemini-3.6-flash",
   "summary": "Division by zero occurs when denominator evaluates to 0 in math utility.",
   "root_cause": "SmallBug.kt:39 performs integer division without guarding against b == 0.",
   "findings": [
@@ -79,14 +81,14 @@ The worker prints **strictly valid JSON** to `stdout`. Diagnostic logs, progress
 ```
 
 ### Graceful Fallback Response (`status: "fallback"`)
-Emitted when the Gemini API is unreachable, quota is exhausted, or credentials are unconfigured. The process exits with code `0`:
+Emitted when an LLM provider is unreachable, quota is exhausted, or credentials are unconfigured. The process exits with code `0`:
 ```json
 {
   "task_id": "audit-20260921-b4c5d6",
   "status": "fallback",
   "task_type": "AUDIT",
   "fallback_reason": "QUOTA_EXHAUSTED",
-  "summary": "Gemini API request failed (QUOTA_EXHAUSTED). Falling back to local Antigravity inspection.",
+  "summary": "gemini provider request failed (QUOTA_EXHAUSTED). Falling back to local Antigravity inspection.",
   "findings": [],
   "evidence": [],
   "recommendations": [
@@ -131,6 +133,8 @@ Emitted when the worker mode is `disabled` or Auto Mode determines that the task
 python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
   --type <TASK_TYPE> `
   --prompt "<instruction>" `
+  [--provider <gemini|openai_compatible>] `
+  [--model <model_name>] `
   [--files <path...>] `
   [--glob "<pattern>"] `
   [--path <directory>] `
@@ -140,6 +144,8 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
   [--strict]
 ```
 
+- `--provider <gemini|openai_compatible>`: Selects the active LLM provider (default: `gemini`).
+- `--model <name>`: Model override (e.g. `gemini-3.6-flash`, `gpt-4o-mini`, `deepseek-chat`).
 - `--files <path...>`: Explicit list of source files to analyze.
 - `--glob "<pattern>"`: Wildcard matcher (e.g. `"src/**/*.kt"`).
 - `--path <directory>`: Entire directory tree (excluding binary and secret files).
@@ -157,7 +163,7 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
 | `0` | `EXIT_SUCCESS` | Successful analysis, cache hit, auto-mode skip, or graceful fallback. |
 | `1` | `EXIT_GENERAL_ERROR` | Unhandled runtime exception or internal failure. |
 | `2` | `EXIT_INVALID_ARGS` | Missing required parameters (e.g. no `--prompt` provided). |
-| `3` | `EXIT_AUTH_ERROR` | `GEMINI_API_KEY` is missing or invalid (`--strict` mode only). |
+| `3` | `EXIT_AUTH_ERROR` | API key is missing or invalid (`--strict` mode only). |
 | `4` | `EXIT_QUOTA_EXHAUSTED` | Daily request budget exceeded (`--strict` mode only). |
 | `5` | `EXIT_RATE_LIMITED` | RPM safety budget exceeded (`--strict` mode only). |
 | `6` | `EXIT_VALIDATION_ERROR` | File size or total context payload exceeds limits (`--strict` mode only). |

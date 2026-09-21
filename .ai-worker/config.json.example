@@ -1,6 +1,9 @@
 {
   "worker_mode": "auto",
+  "provider": "gemini",
   "model": "gemini-3.6-flash",
+  "openai_model": "gpt-4o-mini",
+  "openai_base_url": "https://api.openai.com/v1",
   "daily_request_budget": 1400,
   "rpm_budget": 12,
   "auto_threshold_files": 3,

@@ -1,8 +1,8 @@
-# BUBU: AI Studio Context-Processing Worker
+# BUBU: Provider-Agnostic LLM Context Worker
 
-> **High-Performance, Context-Preserving Research & Analytical Worker for Google Antigravity & Google AI Studio (Gemini API).**
+> **High-Performance, Context-Preserving Research & Analytical Worker for AI Coding Agents (Google Antigravity, Cursor, Cline). Built with Zero External Dependencies (100% Python Standard Library).**
 
-BUBU is a source-available, modular companion for autonomous AI coding agents like [Google Antigravity](https://antigravity.google/). It solves the critical bottleneck of **context window bloat** by offloading heavy multi-file reading, stack-trace debugging, security audits, and library research to Google AI Studio's Gemini API, returning only compact, evidence-verified structured findings to the lead coding agent.
+BUBU is a source-available, modular companion for autonomous AI coding agents like [Google Antigravity](https://antigravity.google/). It solves the critical bottleneck of **context window bloat** by offloading heavy multi-file reading, stack-trace debugging, security audits, and library research out-of-band to a dedicated LLM worker layer (**Google Gemini** as Provider #1 by default, or any **OpenAI-Compatible** API such as DeepSeek, OpenRouter, or local Ollama), returning only compact, evidence-verified structured findings to the lead coding agent.
 
 ---
 
@@ -11,12 +11,13 @@ BUBU is a source-available, modular companion for autonomous AI coding agents li
 - [Quick Start](#-quick-start)
 - [🤖 Install with an AI Coding Agent](#-install-with-an-ai-coding-agent)
 - [🤖 For AI Coding Agents](#-for-ai-coding-agents)
+- [Supported LLM Providers](#-supported-llm-providers)
 - [Why BUBU?](#-why-bubu)
 - [What BUBU is NOT](#-what-bubu-is-not)
 - [Architecture & The Three Layers](#-architecture--the-three-layers)
 - [Worker Usage Modes](#-worker-usage-modes)
 - [Auto Mode Decision Engine](#-auto-mode-decision-engine)
-- [Getting a Gemini API Key](#-getting-a-gemini-api-key)
+- [Configuring Providers & API Keys](#-configuring-providers--api-keys)
 - [API Key Security & Privacy](#-api-key-security--privacy)
 - [Understanding Free API Limits & Tokens](#-understanding-free-api-limits--tokens)
 - [Multi-Factor Caching Engine](#-multi-factor-caching-engine)
@@ -38,18 +39,30 @@ Get up and running in under 2 minutes:
 
 1. **Download / Copy BUBU into your project:**
    Copy `.agents/`, `.ai-worker/`, and `studio/` into your target repository root.
-2. **Obtain a Gemini API key:**
-   Create a free key at [Google AI Studio](https://aistudio.google.com/app/apikey).
-3. **Configure your key locally:**
-   Copy `.env.example` to `.env` and paste your key:
+2. **Configure your provider and API key:**
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   **Option A: Google Gemini (Default - Free Tier available):**
    ```env
+   AI_WORKER_PROVIDER=gemini
    GEMINI_API_KEY=your_actual_gemini_api_key_here
    ```
-4. **Open your project in Antigravity (or your preferred agent):**
+   *Get a key at [Google AI Studio](https://aistudio.google.com/app/apikey).*
+
+   **Option B: OpenAI-Compatible (OpenAI, DeepSeek, OpenRouter, Ollama):**
+   ```env
+   AI_WORKER_PROVIDER=openai_compatible
+   OPENAI_API_KEY=your_actual_openai_or_deepseek_key_here
+   OPENAI_MODEL=gpt-4o-mini
+   OPENAI_BASE_URL=https://api.openai.com/v1
+   ```
+3. **Open your project in Antigravity (or your preferred agent):**
    Antigravity automatically discovers `.agents/skills/ai-studio-worker`.
-5. **Run the 1-Prompt Setup:**
+4. **Run the 1-Prompt Setup:**
    Paste the [AI Coding Agent Prompt](#-install-with-an-ai-coding-agent) into your conversation once.
-6. **Start coding normally:**
+5. **Start coding normally:**
    Prompt your agent with normal engineering tasks. BUBU engages automatically when needed.
 
 ---
@@ -104,6 +117,19 @@ When you are operating in a project equipped with BUBU, follow these operational
 
 ---
 
+## 🔌 Supported LLM Providers
+
+BUBU is designed from the ground up as a **provider-agnostic worker** implemented exclusively using Python standard library networking (`urllib.request`). It requires **zero pip dependencies**:
+
+| Provider ID | Provider Name | Default Model | Authentication | Typical Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **`gemini`** *(Default)* | **Google Gemini** (via Google AI Studio) | `gemini-3.6-flash` | `GEMINI_API_KEY` (URL query or Bearer) | Default high-capacity provider. Generous free tier, 1M+ token context windows, fast inference. |
+| **`openai_compatible`** | **OpenAI / DeepSeek / OpenRouter / Ollama** | `gpt-4o-mini` | `OPENAI_API_KEY` (Bearer Token) | Self-hosted LLMs, enterprise OpenAI endpoints, DeepSeek-V3/R1, or multi-provider aggregators. |
+
+Switching providers is as simple as passing `--provider <name>` on the CLI or setting `AI_WORKER_PROVIDER=<name>` in your environment.
+
+---
+
 ## 💡 Why BUBU?
 
 ### The Problem: Context Window Exhaustion
@@ -113,7 +139,7 @@ When modern coding agents tackle real-world bugs, they frequently need to inspec
 - **Quota Burn:** Expensive conversation context quotas are rapidly consumed.
 
 ### The Solution: External Context Processing
-BUBU shifts heavy reading and initial diagnosis out-of-band to Google's high-capacity Gemini API:
+BUBU shifts heavy reading and initial diagnosis out-of-band to a dedicated LLM worker layer:
 - **Zero Chat Context Bloat:** Raw source files never touch your main chat session.
 - **Verified Grounding:** Every line citation is checked against disk before being returned.
 - **Instant Caching:** Identical analyses return in <0.5 seconds at zero API cost.
@@ -126,7 +152,7 @@ BUBU shifts heavy reading and initial diagnosis out-of-band to Google's high-cap
 - **NOT an autonomous coding agent:** BUBU does not write code to your source tree or execute shell commands.
 - **NOT an Antigravity replacement:** BUBU is a specialized context-processing tool designed to serve the lead agent.
 - **NOT an all-or-nothing requirement:** In `auto` mode, BUBU sleeps during small edits and only wakes for heavy analytical tasks.
-- **NOT an external closed service:** BUBU runs locally on your machine, invoking Google AI Studio using your own direct credentials.
+- **NOT an external closed service:** BUBU runs locally on your machine, invoking your selected LLM provider using your own direct credentials.
 
 ---
 
@@ -148,13 +174,20 @@ BUBU is structured across three distinct operational layers:
 │  • Local CLI worker (.agents/skills/ai-studio-worker/)      │
 │  • Multi-factor SHA-256 cache & local quota tracker         │
 │  • Auto Mode decision engine & evidence verification        │
+│  • Zero-dependency HTTP runtime (urllib.request)            │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ HTTPS (TLS 1.3)
+                               │ HTTPS / TLS 1.3
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                 LAYER C: GEMINI API (GOOGLE AI STUDIO)      │
-│  • Heavy context analysis (100k+ token capacity)            │
-│  • User-owned API key (Free Tier or Paid)                   │
+│            LAYER C: LLM PROVIDER ABSTRACTION LAYER          │
+│                                                             │
+│   ┌───────────────────────────┬──────────────────────────┐  │
+│   │   Provider #1: Gemini     │ Provider #2: OpenAI-Comp │  │
+│   │   • Google AI Studio REST │ • /chat/completions REST │  │
+│   │   • gemini-3.6-flash      │ • OpenAI / DeepSeek /    │  │
+│   │   • Free Tier Available   │   OpenRouter / Ollama    │  │
+│   └───────────────────────────┴──────────────────────────┘  │
+│  • User-owned API keys (never logged or exposed)             │
 │  • Strict structured JSON schema enforcement                │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -164,13 +197,15 @@ Antigravity discovers BUBU via its native skill discovery mechanism. When `.agen
 
 ### Layer B: Project-Scoped BUBU Runtime
 Each project maintains its own isolated runtime in `.ai-worker/`:
-- `.ai-worker/config.json`: Project-specific mode (`auto`, `enabled`, `disabled`).
-- `.ai-worker/cache/`: Multi-factor SHA-256 cache index.
+- `.ai-worker/config.json`: Project-specific mode (`auto`, `enabled`, `disabled`) and provider configuration.
+- `.ai-worker/cache/`: Multi-factor SHA-256 cache index (provider-isolated).
 - `.ai-worker/quota/`: Daily usage safety accounting ledger.
-- `.ai-worker/reports/`: Full analytical markdown reports generated by Gemini.
+- `.ai-worker/reports/`: Full analytical markdown reports generated by the worker.
 
-### Layer C: Gemini API
-User-provided Gemini API key (via `.env` or system environment). The worker communicates directly with Google AI Studio's REST endpoints over secure HTTPS.
+### Layer C: LLM Provider Layer
+The worker communicates directly with provider REST endpoints over TLS 1.3:
+- **Gemini:** `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+- **OpenAI-Compatible:** `{base_url}/chat/completions`
 
 ---
 
@@ -180,7 +215,7 @@ Configured in `.ai-worker/config.json`:
 
 | Mode | Behavior | When to Use |
 | :--- | :--- | :--- |
-| **`auto`** *(Default & Recommended)* | Dynamically evaluates task complexity. Offloads large/multi-file tasks to Gemini; skips worker for small local edits. | Standard everyday pair programming. Balances speed, context savings, and API quotas. |
+| **`auto`** *(Default & Recommended)* | Dynamically evaluates task complexity. Offloads large/multi-file tasks to the worker; skips worker for small local edits. | Standard everyday pair programming. Balances speed, context savings, and API quotas. |
 | **`enabled`** | Always activates the worker for analytical requests. | Large legacy refactoring, repository-wide compliance audits, or multi-module investigations. |
 | **`disabled`** | Completely deactivates the worker. Antigravity inspects all files directly within its own conversation context. | Working without an internet connection, without an API key, or on sensitive internal micro-edits. |
 
@@ -220,24 +255,55 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
 
 ---
 
-## 🔑 Getting a Gemini API Key
+## 🔑 Configuring Providers & API Keys
 
-BUBU requires a Google Gemini API key. Free-tier keys are available to developers at no cost.
+BUBU supports multiple LLM providers. Choose the one that best fits your workflow:
 
-### Step-by-Step Setup:
-1. Navigate to the official Google AI Studio page:  
-   👉 **[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)**
-2. Sign in with your Google account.
-3. Click **Create API Key** (choose a Google Cloud project or create a default one).
-4. Copy your key.
-5. In your project root, copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-6. Open `.env` and set your key:
+### Provider 1: Google Gemini (Default)
+
+Google AI Studio provides generous free-tier keys at zero cost.
+
+1. Navigate to: 👉 **[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)**
+2. Sign in with your Google account and click **Create API Key**.
+3. In your project root, configure `.env`:
    ```env
+   AI_WORKER_PROVIDER=gemini
    GEMINI_API_KEY=your_actual_gemini_api_key_here
+   GEMINI_MODEL=gemini-3.6-flash
    ```
+
+### Provider 2: OpenAI-Compatible (OpenAI, DeepSeek, OpenRouter, Ollama)
+
+You can connect BUBU to any service providing an OpenAI-compatible `/chat/completions` endpoint:
+
+**Example for OpenAI:**
+```env
+AI_WORKER_PROVIDER=openai_compatible
+OPENAI_API_KEY=your_actual_openai_api_key_here
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+**Example for DeepSeek:**
+```env
+AI_WORKER_PROVIDER=openai_compatible
+OPENAI_API_KEY=your_deepseek_api_key_here
+OPENAI_MODEL=deepseek-chat
+OPENAI_BASE_URL=https://api.deepseek.com/v1
+```
+
+**Example for Local Ollama (No API Key Required):**
+```env
+AI_WORKER_PROVIDER=openai_compatible
+OPENAI_MODEL=qwen2.5-coder:7b
+OPENAI_BASE_URL=http://localhost:11434/v1
+```
+
+### Switching via CLI Flags
+You can also override the provider per invocation:
+```powershell
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py --provider openai_compatible --status
+```
 
 ---
 
@@ -285,17 +351,17 @@ To inspect active quotas for your account and model, check your project settings
 
 BUBU includes an intelligent local caching engine to eliminate redundant API calls and prevent quota burn.
 
-### The 6-Factor Cache Formula
-Unlike simple caches that only check file timestamps, BUBU's cache key reflects the complete analytical environment:
+### The 7-Factor Cache Formula
+Unlike simple caches that only check file timestamps, BUBU's cache key reflects the complete analytical environment, ensuring complete provider and model isolation:
 
-$$\text{Cache Key} = \text{SHA-256}(\text{Version} + \text{Model} + \text{TaskType} + \text{Prompt} + \text{SortedFileHashes} + \text{Config})$$
+$$\text{Cache Key} = \text{SHA-256}(\text{Version} + \text{Provider} + \text{Model} + \text{TaskType} + \text{Prompt} + \text{SortedFileHashes} + \text{Config})$$
 
 ### Cache Invalidation Rules:
 The cache is invalidated and a fresh API call is triggered if:
 1. Any targeted file is modified by even 1 character (file SHA-256 changes).
 2. The user's prompt or question is altered.
 3. The assigned task type (`DEBUG` vs `AUDIT`) changes.
-4. The Gemini model is switched.
+4. The provider or model is switched (`gemini` vs `openai_compatible`).
 5. The worker engine version is updated.
 6. The `--force` flag is specified.
 
@@ -308,10 +374,10 @@ When a cache hit occurs, BUBU delivers verified findings in **<0.5 seconds** wit
 BUBU maintains a local usage ledger in `.ai-worker/quota/quota_tracker.json`.
 
 > **Key Distinction:**
-> The **Local Quota Tracker** is a client-side safety guardrails system. It is designed to prevent accidental runaway loops or rapid exhaustion. It does not replace Google's server-side rate limits, but works proactively to keep your usage well within safe operating margins.
+> The **Local Quota Tracker** is a client-side safety guardrails system. It is designed to prevent accidental runaway loops or rapid exhaustion. It does not replace the provider's server-side rate limits, but works proactively to keep your usage well within safe operating margins.
 
 ### Transient Error Handling
-If Google's servers return `429 (Rate Limit)` or `503 (Server Busy)`, BUBU applies **exponential backoff** (retrying after 1s, 2s, and 4s). If the limit persists, it transitions to [Resilient Fallback](#-resilient-graceful-fallback).
+If provider servers return `429 (Rate Limit)` or `503 (Server Busy)`, BUBU applies **exponential backoff** (retrying after 1s, 2s, and 4s). If the limit persists, it transitions to [Resilient Fallback](#-resilient-graceful-fallback).
 
 ---
 
@@ -319,7 +385,7 @@ If Google's servers return `429 (Rate Limit)` or `503 (Server Busy)`, BUBU appli
 
 BUBU follows a zero-failure philosophy: **an analytical worker issue must never crash the lead developer's workflow.**
 
-If the Gemini API encounters:
+If the LLM provider encounters:
 - `429 Too Many Requests`
 - Daily quota exhaustion
 - Network interruption or timeout
@@ -331,7 +397,7 @@ BUBU cleanly outputs a structured fallback JSON payload:
   "task_id": "audit-20260921-b4c5d6",
   "status": "fallback",
   "fallback_reason": "QUOTA_EXHAUSTED",
-  "summary": "Gemini API unavailable (QUOTA_EXHAUSTED). Falling back to local Antigravity inspection."
+  "summary": "LLM Provider unavailable (QUOTA_EXHAUSTED). Falling back to local Antigravity inspection."
 }
 ```
 The process exits with code `0`. Antigravity detects the fallback state and proceeds immediately with local inspection tools (`view_file`, `grep_search`).
@@ -375,7 +441,7 @@ Independent Test Suite:  30 / 30 validation tests passed (100% PASS)
    [ai_worker.py]
         │
         ▼ (HTTPS / TLS 1.3 encryption)
- [Google AI Studio] (Gemini API)
+ [LLM Provider Layer] (Google Gemini / OpenAI / DeepSeek / Local Ollama)
         │
         ▼ (Analysis & citations)
    [ai_worker.py]
@@ -384,8 +450,8 @@ Independent Test Suite:  30 / 30 validation tests passed (100% PASS)
         └──► Compact Summary emitted to stdout ──► Antigravity Chat
 ```
 
-- **Data in Flight:** Data sent to Google AI Studio is encrypted in transit via TLS 1.3.
-- **Enterprise & Proprietary Code:** If you are bound by strict enterprise privacy agreements, review Google's [Terms of Service](https://ai.google.dev/terms). In Google AI Studio's Free Tier, data may be used to improve Google products; on Paid Tiers, user data is not used for model training.
+- **Data in Flight:** Data sent to external providers is encrypted in transit via TLS 1.3. For local providers (e.g. Ollama on `localhost`), data never leaves your machine.
+- **Enterprise & Proprietary Code:** If you are bound by strict enterprise privacy agreements, choose local Ollama or an enterprise provider tier where data is not used for model training.
 
 ---
 
@@ -407,25 +473,36 @@ Copyright (c) 2026 **`aethelondev-stack`**. All rights reserved.
 ### What is BUBU?
 BUBU is an out-of-band context-processing worker that helps AI coding agents (like Google Antigravity) analyze large codebases without bloating their conversation context.
 
+### Which LLM providers are supported?
+BUBU supports:
+1. **Google Gemini** (via Google AI Studio REST API) — default, generous free tier.
+2. **OpenAI-Compatible Providers** — OpenAI, DeepSeek, OpenRouter, vLLM, and local Ollama.
+
+### Does BUBU require any pip packages?
+**No.** BUBU is built entirely using Python's standard library (`urllib.request`, `json`, `pathlib`, `hashlib`, etc.). No `pip install` is ever needed.
+
+### Can BUBU be used with local LLMs (Ollama)?
+Yes! Set `AI_WORKER_PROVIDER=openai_compatible`, `OPENAI_BASE_URL=http://localhost:11434/v1`, and `OPENAI_MODEL=qwen2.5-coder:7b`. No API key is required for local endpoints.
+
 ### Can BUBU be used without Antigravity?
 Yes. BUBU can be invoked directly from PowerShell, Bash, or any external automation script using `python .agents/skills/ai-studio-worker/scripts/ai_worker.py`.
 
-### Which Gemini model does it use?
-It defaults to `gemini-3.6-flash`. You can customize the model by setting `GEMINI_MODEL` in `.env` or `.ai-worker/config.json`.
+### Which model does it use by default?
+For Gemini, it defaults to `gemini-3.6-flash`. For OpenAI-compatible, it defaults to `gpt-4o-mini`. Both are fully configurable.
 
 ### Is it free to use?
-Yes. Google AI Studio offers a free tier for Gemini API keys. Check [Google AI Studio Pricing](https://ai.google.dev/pricing) for details.
+Yes. Google AI Studio offers a free tier for Gemini API keys. Local Ollama is completely free on your own hardware.
 
 ### How many requests do I get per day?
-Quotas depend on your Google AI Studio tier and active model. You can monitor live quotas in your Google AI Studio dashboard.
+Quotas depend on your provider tier and active model. You can monitor live quotas in your provider's dashboard.
 
 ### Does 100 files equal 100 API requests?
 No! BUBU bundles multiple files into a single prompt payload. A 20-file audit typically counts as **one single request**.
 
-### Where do I store my API key?
+### Where do I store my API keys?
 In `.env` in your project root (recommended) or in your operating system's user environment variables.
 
-### Can I commit my API key to GitHub?
+### Can I commit my API keys to GitHub?
 **No, absolutely not.** BUBU's `.gitignore` protects `.env` from being tracked.
 
 ### Does the worker run on every single prompt?
@@ -434,7 +511,7 @@ No. In `auto` mode, BUBU only activates for complex, multi-file, or deep analyti
 ### What happens if I re-run the same analysis?
 BUBU's multi-factor cache serves the result in <0.5s with zero API calls and zero token consumption.
 
-### What happens if the Gemini API is down or quota is exhausted?
+### What happens if the LLM provider is down or quota is exhausted?
 BUBU emits a graceful fallback response (`status: "fallback"`), allowing your agent to continue seamlessly using local file inspection.
 
 ### Does the worker ever modify my source code?

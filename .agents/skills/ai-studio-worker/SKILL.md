@@ -1,17 +1,18 @@
 ---
 name: ai-studio-worker
 description: >-
-  Universal AI Studio Context-Processing Worker for Antigravity.
+  Universal Provider-Agnostic LLM Context-Processing Worker for Antigravity.
   Offloads heavy file reading, complex debugging, cross-file comparisons,
-  and extensive codebase research to Google AI Studio's Gemini API, preserving
-  Antigravity's main conversation context.
+  and extensive codebase research to high-capacity LLM APIs (Google Gemini,
+  OpenAI, DeepSeek, OpenRouter, Ollama), preserving Antigravity's main
+  conversation context.
 ---
 
-# Universal AI Studio Context-Processing Worker
+# Universal LLM Context-Processing Worker (BUBU)
 
 This skill provides an external context-processing service for any project.
-It runs as a local Python worker that routes large file sets, logs, and research
-prompts to Google AI Studio (Gemini API), saving verbose reports to disk and returning
+It runs as a local, dependency-free Python worker that routes large file sets, logs, and research
+prompts to configured LLM providers (Google Gemini as Provider #1, or any OpenAI-compatible HTTP API as Provider #2), saving verbose reports to disk and returning
 only compact, evidence-backed JSON to Antigravity.
 
 ---
@@ -25,21 +26,28 @@ Antigravity reviews the structured findings, verifies the evidence, and performs
 
 ---
 
-## 2. Worker Usage Modes
+## 2. Worker Usage Modes & Provider Selection
 
 The system supports three project-level modes configured in `.ai-worker/config.json`:
 
 1. **`auto` (Default & Recommended):**
    - The decision engine evaluates task complexity, file counts, and byte budgets dynamically.
-   - Large or multi-file analytical tasks are offloaded to Gemini.
-   - Small, localized micro-edits bypass Gemini and are inspected directly by Antigravity.
+   - Large or multi-file analytical tasks are offloaded to the active LLM provider.
+   - Small, localized micro-edits bypass the worker and are inspected directly by Antigravity.
 2. **`enabled`:**
    - Worker is active for all analytical requests where invoked.
 3. **`disabled`:**
    - Worker is completely deactivated. All file inspections are performed directly by Antigravity.
 
+### LLM Providers
+- **`gemini` (Default Provider #1):** Google AI Studio Gemini API (Free tier available).
+- **`openai_compatible` (Provider #2):** Standard HTTP API compatible with OpenAI, DeepSeek, OpenRouter, Qwen, Ollama, and local proxies.
+
 ### Querying or Changing Mode
 ```powershell
+# Query current status & provider
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py --status
+
 # Query current mode
 python .agents/skills/ai-studio-worker/scripts/ai_worker.py --get-mode
 
@@ -50,7 +58,7 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py --set-mode <enabled|
 ### Initial Project Setup Prompt
 If `.ai-worker/config.json` does not exist in a new project, prompt the user once:
 ```text
-AI Studio Worker bu projede kullanılabilir.
+BUBU (LLM Context Worker) bu projede kullanılabilir.
 Tercihiniz:
 1. Worker kullan (enabled)
 2. Worker kullanma (disabled)
@@ -62,7 +70,7 @@ Save the selection via `--set-mode` so subsequent sessions never prompt again.
 
 ## 3. Auto Mode Decision Engine
 
-Before sending code to Gemini, evaluate whether offloading is justified:
+Before sending code to an external LLM, evaluate whether offloading is justified:
 
 ```powershell
 python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
@@ -96,6 +104,15 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
   --files <file1> <file2> ...
 ```
 
+### Provider & Model Overrides
+```powershell
+# Default (Gemini)
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py --type AUDIT --prompt "..." --files ...
+
+# Explicit OpenAI-compatible provider
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py --provider openai_compatible --model gpt-4o-mini --type AUDIT --prompt "..." --files ...
+```
+
 ### Supported Task Types (`--type`)
 - `DEBUG`: Stack trace & root cause analysis with line citations.
 - `ANALYZE`: Data flow, architectural flow, and component interaction.
@@ -110,6 +127,8 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
 - `--files <path...>`: Specific files to read with line numbers.
 - `--glob "<pattern>"`: Glob pattern (e.g. `"src/**/*.kt"`).
 - `--path <directory>`: Entire directory tree (excluding build artifacts).
+- `--provider <name>`: Override provider (`gemini`, `openai_compatible`).
+- `--model <name>`: Override model.
 - `--dry-run`: Test file selection and byte budget without calling the API.
 - `--force`: Bypass cache and re-run analysis.
 
@@ -124,6 +143,8 @@ The worker prints a compact machine-readable JSON to `stdout`:
   "task_id": "audit-20260921-a1b2c3",
   "status": "success",
   "task_type": "AUDIT",
+  "provider": "gemini",
+  "model": "gemini-3.6-flash",
   "summary": "High-level summary of findings.",
   "root_cause": "Exact root cause description if applicable.",
   "findings": ["Point 1", "Point 2"],
@@ -158,10 +179,10 @@ If the worker returns `status: "fallback"` or `status: "skipped"`:
 ```json
 {
   "status": "fallback",
-  "fallback_reason": "QUOTA_EXHAUSTED",
-  "summary": "Gemini API unavailable. Falling back to local Antigravity inspection."
+  "fallback_reason": "API_AUTH_ERROR",
+  "summary": "LLM provider request failed (API_AUTH_ERROR). Falling back to local Antigravity inspection."
 }
 ```
 1. **Do NOT halt the user's task.**
-2. Acknowledge fallback briefly (`Gemini quota reached; continuing with local analysis`).
+2. Acknowledge fallback briefly (`Worker fallback triggered; continuing with local analysis`).
 3. Fall back immediately to direct Antigravity inspection (reading targeted files via `view_file` or `grep_search`).

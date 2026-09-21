@@ -18,11 +18,11 @@ BUBU (AI Studio Context-Processing Worker) is designed from first principles wit
 │     ▼                                                                   │
 │  [ai_worker.py]                                                         │
 │     ├── Path Traversal Check ──► Restrict access to Project Root        │
-│     ├── Secret Redaction     ──► Redact API Key & Tokens                │
+│     ├── Secret Redaction     ──► Redact API Keys & Bearer Tokens        │
 │     ├── Read-Only Guarantee  ──► Modifies ONLY .ai-worker/             │
 │     │                                                                   │
-│     ▼                                                                   │
-│  [Gemini API (HTTPS TLS 1.3)]                                           │
+│     ▼ (HTTPS TLS 1.3)                                                   │
+│  [LLM Provider Layer] (Google Gemini / OpenAI / DeepSeek / Ollama)     │
 │     ▼                                                                   │
 │  [Structured Output / Disk Reports]                                     │
 │     └── Redaction verification & evidence line-matching                 │
@@ -34,7 +34,7 @@ BUBU (AI Studio Context-Processing Worker) is designed from first principles wit
 ## 2. API Key Security & Zero-Leakage Policy
 
 - **Never Committed:** Real API keys must never be committed to Git. The `.gitignore` file excludes `.env` and `.env.*` by default.
-- **In-Memory Masking:** The worker loads `GEMINI_API_KEY` or `GOOGLE_API_KEY` into memory for outgoing HTTPS requests. Any occurrence of the raw API key in logs, stdout, stderr, or generated markdown reports is masked with `[REDACTED_API_KEY]`.
+- **In-Memory Masking:** The worker loads `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `OPENAI_API_KEY` into memory for outgoing HTTPS requests. Any occurrence of raw API keys or tokens in logs, stdout, stderr, or generated markdown reports is masked with `[REDACTED_API_KEY]`.
 - **Never In Chat Prompts:** Antigravity and other coding assistants should never ask you to paste your real API key into chat conversations. Store it in `.env` or in your system environment variables.
 - **Dry-Run Safe:** When executing in `--dry-run` mode, no network connection is established and no API key is verified or transmitted.
 

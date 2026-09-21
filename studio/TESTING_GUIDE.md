@@ -1,15 +1,19 @@
 # Testing & Verification Guide (TESTING_GUIDE.md)
 
-This guide provides test procedures, CLI commands, security tests, and empirical validation results for `ai_worker.py` and the BUBU skill.
+This guide provides test procedures, CLI commands, security tests, multi-provider validation, and empirical data for `ai_worker.py` and the BUBU skill.
 
 ---
 
 ## 1. Quick Status Verification (`--status`)
 
-Verify that the worker can discover the project root, active configuration mode, quota counter, and cache state:
+Verify that the worker can discover the project root, active configuration mode, active provider, quota counter, and cache state:
 
 ```powershell
+# Default status (Gemini)
 python .agents/skills/ai-studio-worker/scripts/ai_worker.py --status
+
+# OpenAI-compatible status
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py --provider openai_compatible --status
 ```
 
 Expected JSON response:
@@ -19,6 +23,7 @@ Expected JSON response:
   "worker_version": "1.0.0",
   "project_root": "/path/to/your-project",
   "worker_mode": "auto",
+  "provider": "gemini",
   "model": "gemini-3.6-flash",
   "quota": {
     "requests": 0
@@ -43,7 +48,7 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py --set-mode auto
 ```
 
 ### Test Auto Mode Decision Engine (`--decide`)
-Test decision logic without invoking the Gemini API or consuming quota:
+Test decision logic without invoking any LLM API or consuming quota:
 
 ```powershell
 # Small / localized task (Expects SKIP)
@@ -63,12 +68,23 @@ python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
 
 ---
 
-## 3. Dry-Run Execution (`--dry-run`)
+## 3. Dry-Run Execution Across Providers (`--dry-run`)
 
 Simulate payload assembly, line numbering, secret exclusion, and size budgets with zero API calls:
 
 ```powershell
+# Dry-run with Gemini (Provider #1)
 python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
+  --provider gemini `
+  --type RESEARCH `
+  --prompt "Audit studio documentation structure" `
+  --files studio/ARCHITECTURE.md `
+  --dry-run
+
+# Dry-run with OpenAI-compatible (Provider #2)
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
+  --provider openai_compatible `
+  --model gpt-4o-mini `
   --type RESEARCH `
   --prompt "Audit studio documentation structure" `
   --files studio/ARCHITECTURE.md `
@@ -95,37 +111,35 @@ Expected result:
 
 ---
 
-## 5. Live API & Cache Verification
+## 5. Provider Isolation & Multi-Factor Caching Test
 
-With `GEMINI_API_KEY` configured in `.env`:
-
-### Run A: Initial Execution (Cache MISS)
-```powershell
-python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
-  --type ANALYZE `
-  --files studio/ARCHITECTURE.md studio/WORKER_PROTOCOL.md `
-  --prompt "Verify architectural consistency between protocol and architecture guides."
-```
-- Stderr: `[ai-worker] Cache MISS. Preparing Gemini API request...`
-- Stdout: `"cache_hit": false`
-- Disk report: Created in `.ai-worker/reports/`
-
-### Run B: Second Execution (Cache HIT)
-Re-run the exact same command:
-```powershell
-python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
-  --type ANALYZE `
-  --files studio/ARCHITECTURE.md studio/WORKER_PROTOCOL.md `
-  --prompt "Verify architectural consistency between protocol and architecture guides."
-```
-- Stderr: `[ai-worker] Cache HIT! Returning cached structured result.`
-- Stdout: `"cache_hit": true`
-- API calls: 0
-- Execution time: <0.5 seconds
+1. Run an analysis with `--provider gemini`.
+2. Run the identical query with `--provider openai_compatible`.
+3. Verify that the cache keys differ due to the provider salt:
+   $$\text{Cache Key} = \text{SHA-256}(\text{Version} + \text{Provider} + \text{Model} + \text{TaskType} + \text{Prompt} + \text{Files} + \text{Config})$$
+   Different providers never return cross-contaminated cache entries.
 
 ---
 
-## 6. Empirical Verification & Stress Test Results
+## 6. Zero-Quota Mock OpenAI-Compatible Testing
+
+BUBU includes built-in compatibility testing without consuming live cloud quotas by targeting a local HTTP mock server (e.g. `http://127.0.0.1:8989` or local Ollama `http://127.0.0.1:11434/v1`):
+
+```powershell
+$env:OPENAI_BASE_URL = "http://127.0.0.1:8989"
+$env:OPENAI_API_KEY = "test-key"
+
+python .agents/skills/ai-studio-worker/scripts/ai_worker.py `
+  --provider openai_compatible `
+  --model gpt-4o-mini `
+  --type AUDIT `
+  --files studio/ARCHITECTURE.md `
+  --prompt "Test local mock provider"
+```
+
+---
+
+## 7. Empirical Verification & Stress Test Results
 
 BUBU's performance was validated in a comprehensive stress test against a 31-file synthetic project containing 8 injected logical flaws:
 

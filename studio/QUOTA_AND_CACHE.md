@@ -6,13 +6,14 @@ This document describes the multi-factor SHA-256 caching engine and the local qu
 
 ## 1. Multi-Factor SHA-256 Caching Engine
 
-Traditional file caches only check individual file timestamps or contents. However, an analysis of the same source file varies drastically depending on the specific prompt, the model utilized, and the assigned task type (`DEBUG` vs `AUDIT`).
+Traditional file caches only check individual file timestamps or contents. However, an analysis of the same source file varies drastically depending on the specific prompt, the provider utilized (`gemini` vs `openai_compatible`), the model utilized, and the assigned task type (`DEBUG` vs `AUDIT`).
 
-BUBU computes a **composite 6-factor SHA-256 hash** as the cache key:
+BUBU computes a **composite 7-factor SHA-256 hash** as the cache key:
 
 ```text
 CACHE_KEY = SHA256(
     WORKER_VERSION
+    + PROVIDER_NAME
     + MODEL_NAME
     + TASK_TYPE
     + PROMPT_STRING
@@ -22,13 +23,14 @@ CACHE_KEY = SHA256(
 ```
 
 ### Cache Invalidation Triggers
-A cache hit occurs **only** when all six parameters are identical. The cache is automatically invalidated if:
-1. **Any source file changes:** Even a 1-character edit alters that file's SHA-256 hash.
-2. **The user's prompt changes:** Asking a different question triggers a fresh analysis.
-3. **The task type changes:** Switching from `ANALYZE` to `AUDIT` requires different analytical reasoning.
-4. **The model changes:** Switching models (e.g. from `gemini-3.6-flash` to another model) invalidates older responses.
-5. **The worker engine updates:** Bumping `WORKER_VERSION` invalidates stale schemas.
-6. **Force flag:** Running with `--force` bypasses the cache entirely.
+A cache hit occurs **only** when all seven parameters are identical. The cache is automatically invalidated if:
+1. **The provider changes:** Switching from `gemini` to `openai_compatible` generates a distinct cache key, preventing cross-provider pollution.
+2. **Any source file changes:** Even a 1-character edit alters that file's SHA-256 hash.
+3. **The user's prompt changes:** Asking a different question triggers a fresh analysis.
+4. **The task type changes:** Switching from `ANALYZE` to `AUDIT` requires different analytical reasoning.
+5. **The model changes:** Switching models (e.g. from `gemini-3.6-flash` to `gpt-4o-mini`) invalidates older responses.
+6. **The worker engine updates:** Bumping `WORKER_VERSION` invalidates stale schemas.
+7. **Force flag:** Running with `--force` bypasses the cache entirely.
 
 ### Performance & Offline Serving
 - **Sub-Second Response:** When a cache hit occurs, the worker serves the verified structured output in <0.5 seconds (measured ~82x faster than a full API round-trip).
@@ -38,11 +40,11 @@ A cache hit occurs **only** when all six parameters are identical. The cache is 
 
 ---
 
-## 2. Local Quota Tracker vs. Google Server Quota
+## 2. Local Quota Tracker vs. Server Quotas
 
 > [!IMPORTANT]
-> **Local Quota Tracker $\neq$ Google Server Quota.**
-> The local tracker is a client-side safety mechanism designed to protect developers from runaway loops and rate limits. It does not replace or reflect live Google cloud server quotas.
+> **Local Quota Tracker $\neq$ Provider Server Quotas.**
+> The local tracker is a client-side safety mechanism designed to protect developers from runaway loops and rate limits across any LLM provider. It does not replace or reflect live provider cloud server quotas.
 
 ### Why Maintain a Local Safety Budget?
 1. **Loop Protection:** Prevents an automated agent loop from issuing hundreds of accidental requests in minutes.
@@ -59,17 +61,6 @@ Configurable via `.ai-worker/config.json` or environment variables:
 }
 ```
 
-### Local Accounting Ledger (`.ai-worker/quota/quota_tracker.json`)
-Every outgoing API call updates a local ledger:
-- Current calendar date (`YYYY-MM-DD`).
-- Total daily request counter.
-- Estimated input and output token counts (reported by Gemini's `usageMetadata`).
-- HTTP status code counters (`429`, `5xx`, `4xx`).
-- Sliding window timestamps for the past 60 seconds (for RPM enforcement).
-
-### Transient Error Handling (Exponential Backoff)
-If Gemini responds with HTTP `429 (Rate Limit)` or `503/504 (Server Unavailable)`:
-- **Attempt 1:** Wait 1.0 second and retry.
-- **Attempt 2:** Wait 2.0 seconds and retry.
-- **Attempt 3:** Wait 4.0 seconds and retry.
-If all retries fail, BUBU smoothly falls back (`status: "fallback"`), ensuring Antigravity continues its work without being blocked.
+- **Daily Request Cap:** Tracks total calls executed in the current UTC day.
+- **RPM Window:** Tracks requests in the trailing 60 seconds to prevent `429 Too Many Requests`.
+- **Reset Logic:** Automatic reset when UTC date rolls over.
