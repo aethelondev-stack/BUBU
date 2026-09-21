@@ -6,8 +6,27 @@ BUBU is a source-available, modular companion for autonomous AI coding agents li
 
 ---
 
+## 🌐 The Ecosystem: BUBU + NEXUS + ARGUS
+
+BUBU is the dedicated Context & LLM Worker within the autonomous three-layer agent ecosystem:
+
+```text
+BUBU (Context Worker)
+  ↓
+NEXUS (Coordination & Routing Layer)
+  ↓
+ARGUS (Vision Shield & Token Guardian)
+```
+
+- **[BUBU](https://github.com/aethelondev-stack/BUBU):** Offloads multi-file context analysis, architectural audits, and memory leak detection.
+- **[NEXUS](https://github.com/aethelondev-stack/NEXUS):** Coordinates multi-worker workflows, handles provider quota (429/TPM) and rate limits, loop detection, and evidence aggregation.
+- **[ARGUS](https://github.com/aethelondev-stack/ARGUS):** On-device vision shield and visual grounding using local GPU to prevent multimodal token bleeding.
+
+---
+
 ## 📑 Table of Contents
 
+- [🌐 The Ecosystem: BUBU + NEXUS + ARGUS](#-the-ecosystem-bubu--nexus--argus)
 - [Quick Start](#-quick-start)
 - [🤖 Install with an AI Coding Agent](#-install-with-an-ai-coding-agent)
 - [🤖 For AI Coding Agents](#-for-ai-coding-agents)
