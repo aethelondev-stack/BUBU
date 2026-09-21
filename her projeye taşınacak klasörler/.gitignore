@@ -1,0 +1,18 @@
+# ===========================================================================
+# BUBU / AI Studio Worker Exclusions
+# ===========================================================================
+.env
+.env.*
+!.env.example
+
+.ai-worker/config.json
+.ai-worker/cache/*
+!.ai-worker/cache/.gitkeep
+.ai-worker/reports/*
+!.ai-worker/reports/.gitkeep
+.ai-worker/quota/*
+!.ai-worker/quota/.gitkeep
+
+__pycache__/
+*.py[cod]
+*.tmp

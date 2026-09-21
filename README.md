@@ -33,40 +33,22 @@ BUBU is a source-available, modular companion for autonomous AI coding agents li
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start (Zero-Prompt Auto-Onboarding)
 
-Get up and running in under 2 minutes:
+Get up and running in under 30 seconds:
 
-1. **Copy the Installation Payload into your target project:**
-   Copy `.agents/skills/ai-studio-worker/`, `.ai-worker/config.json.example`, `.env.example`, and optionally `studio/` into your target repository root.
-   *(See [INSTALL.md](INSTALL.md) for the complete canonical payload classification. **Do NOT copy `.git/` or BUBU's own `README.md`**).*
-2. **Merge `.gitignore` rules:**
-   Append BUBU's runtime and secret ignore rules to your project's `.gitignore` (do not overwrite your existing `.gitignore`).
-3. **Configure your provider and API key:**
-   Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   **Option A: Google Gemini (Default - Free Tier available):**
-   ```env
-   AI_WORKER_PROVIDER=gemini
-   GEMINI_API_KEY=your_actual_gemini_api_key_here
-   ```
-   *Get a key at [Google AI Studio](https://aistudio.google.com/app/apikey).*
-
-   **Option B: OpenAI-Compatible (OpenAI, DeepSeek, OpenRouter, Ollama):**
-   ```env
-   AI_WORKER_PROVIDER=openai_compatible
-   OPENAI_API_KEY=your_actual_openai_or_deepseek_key_here
-   OPENAI_MODEL=gpt-4o-mini
-   OPENAI_BASE_URL=https://api.openai.com/v1
-   ```
-4. **Open your project in Antigravity (or your preferred agent):**
-   Antigravity automatically discovers `.agents/skills/ai-studio-worker/SKILL.md`.
-5. **Run the 1-Prompt Setup:**
-   Paste the [AI Coding Agent Prompt](#-install-with-an-ai-coding-agent) into your conversation once.
-6. **Start coding normally:**
-   Prompt your agent with normal engineering tasks. BUBU engages automatically when needed.
+1. **Copy the Portable Package (`her projeye taşınacak klasörler/`) into your project:**
+   Copy the contents of `her projeye taşınacak klasörler/` into your target repository root:
+   - `.agents/skills/ai-studio-worker/` (Worker engine)
+   - `.ai-worker/` (Cache, quota, and reports scaffolding)
+   - `AGENTS.md` (Zero-token on-demand onboarding rule)
+   - `.env` (Your API key) & `.gitignore`
+2. **Start coding normally:**
+   Open a new chat in Antigravity and prompt your agent with any engineering task (e.g., *"Build a login API"*).
+   - Antigravity's `AGENTS.md` rule automatically fulfills your coding task first.
+   - At the end of the response, it prompts for your BUBU and ARGUS mode preference once.
+   - **Zero-Token Guard:** If you select `disabled`, it writes the setting without wasting a single token reading skills or scripts.
+   - If you select `auto` or `enabled`, it loads the worker on-demand and saves your preference forever.
 
 ---
 
