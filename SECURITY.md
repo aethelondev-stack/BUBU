@@ -1,6 +1,6 @@
 # Security Policy and Threat Model (SECURITY.md)
 
-BUBU (AI Studio Context-Processing Worker) is designed from first principles with a defense-in-depth architecture. Because BUBU inspects source files and interacts with Google's Gemini API, security, confidentiality, and data hygiene are top priorities.
+BUBU (Provider-Agnostic LLM Context Worker) is designed from first principles with a defense-in-depth architecture. Because BUBU inspects source files and interacts with configured LLM providers (Google Gemini as default, or OpenAI-compatible endpoints), security, confidentiality, and data hygiene are top priorities.
 
 ---
 
@@ -51,7 +51,7 @@ SECRET_FILE_PATTERNS = {
 }
 ```
 
-Even if a user or agent passes `--files .env` or `--glob "**/*"`, the worker will log an exclusion notice and skip the file. Secret files will never be sent to the Gemini API or written to reports.
+Even if a user or agent passes `--files .env` or `--glob "**/*"`, the worker will log an exclusion notice and skip the file. Secret files will never be sent to external LLM APIs or written to reports.
 
 ---
 

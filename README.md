@@ -37,9 +37,12 @@ BUBU is a source-available, modular companion for autonomous AI coding agents li
 
 Get up and running in under 2 minutes:
 
-1. **Download / Copy BUBU into your project:**
-   Copy `.agents/`, `.ai-worker/`, and `studio/` into your target repository root.
-2. **Configure your provider and API key:**
+1. **Copy the Installation Payload into your target project:**
+   Copy `.agents/skills/ai-studio-worker/`, `.ai-worker/config.json.example`, `.env.example`, and optionally `studio/` into your target repository root.
+   *(See [INSTALL.md](INSTALL.md) for the complete canonical payload classification. **Do NOT copy `.git/` or BUBU's own `README.md`**).*
+2. **Merge `.gitignore` rules:**
+   Append BUBU's runtime and secret ignore rules to your project's `.gitignore` (do not overwrite your existing `.gitignore`).
+3. **Configure your provider and API key:**
    Copy `.env.example` to `.env`:
    ```bash
    cp .env.example .env
@@ -58,11 +61,11 @@ Get up and running in under 2 minutes:
    OPENAI_MODEL=gpt-4o-mini
    OPENAI_BASE_URL=https://api.openai.com/v1
    ```
-3. **Open your project in Antigravity (or your preferred agent):**
-   Antigravity automatically discovers `.agents/skills/ai-studio-worker`.
-4. **Run the 1-Prompt Setup:**
+4. **Open your project in Antigravity (or your preferred agent):**
+   Antigravity automatically discovers `.agents/skills/ai-studio-worker/SKILL.md`.
+5. **Run the 1-Prompt Setup:**
    Paste the [AI Coding Agent Prompt](#-install-with-an-ai-coding-agent) into your conversation once.
-5. **Start coding normally:**
+6. **Start coding normally:**
    Prompt your agent with normal engineering tasks. BUBU engages automatically when needed.
 
 ---
@@ -298,6 +301,9 @@ AI_WORKER_PROVIDER=openai_compatible
 OPENAI_MODEL=qwen2.5-coder:7b
 OPENAI_BASE_URL=http://localhost:11434/v1
 ```
+
+> [!NOTE]
+> **Compatibility Note:** Services such as DeepSeek, OpenRouter, and Ollama interface via the OpenAI-compatible endpoint abstraction (`openai_compatible`). While the wire protocol is standard, provider-specific live validation may be required depending on custom model naming, parameter restrictions, or remote rate limits.
 
 ### Switching via CLI Flags
 You can also override the provider per invocation:
