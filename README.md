@@ -1,6 +1,6 @@
-# BUBU: Provider-Agnostic LLM Context Worker
+# BUBU: General-Purpose AI Worker & LLM Context Engine
 
-> **High-Performance, Context-Preserving Research & Analytical Worker for AI Coding Agents (Google Antigravity, Cursor, Cline). Built with Zero External Dependencies (100% Python Standard Library).**
+> **High-Performance, Context-Preserving General-Purpose Research & Analytical Worker for AI Coding Agents (Google Antigravity, Cursor, Cline). Built with Zero External Dependencies (100% Python Standard Library).**
 
 BUBU is a source-available, modular companion for autonomous AI coding agents like [Google Antigravity](https://antigravity.google/). It solves the critical bottleneck of **context window bloat** by offloading heavy multi-file reading, stack-trace debugging, security audits, and library research out-of-band to a dedicated LLM worker layer (**Google Gemini** as Provider #1 by default, or any **OpenAI-Compatible** API such as DeepSeek, OpenRouter, or local Ollama), returning only compact, evidence-verified structured findings to the lead coding agent.
 
@@ -8,19 +8,19 @@ BUBU is a source-available, modular companion for autonomous AI coding agents li
 
 ## 🌐 The Ecosystem: BUBU + NEXUS + ARGUS
 
-BUBU is the dedicated Context & LLM Worker within the autonomous three-layer agent ecosystem:
+BUBU is the dedicated General-Purpose Worker within the autonomous three-layer agent ecosystem:
 
 ```text
-BUBU (Context Worker)
+BUBU (General-Purpose AI Worker)
   ↓
-NEXUS (Coordination & Routing Layer)
+NEXUS (Always-On Host Coordinator)
   ↓
-ARGUS (Vision Shield & Token Guardian)
+ARGUS (Visual / Computer Interaction AI Worker)
 ```
 
-- **[BUBU](https://github.com/aethelondev-stack/BUBU):** Offloads multi-file context analysis, architectural audits, and memory leak detection.
-- **[NEXUS](https://github.com/aethelondev-stack/NEXUS):** Coordinates multi-worker workflows, handles provider quota (429/TPM) and rate limits, loop detection, and evidence aggregation.
-- **[ARGUS](https://github.com/aethelondev-stack/ARGUS):** On-device vision shield and visual grounding using local GPU to prevent multimodal token bleeding.
+- **[BUBU](https://github.com/aethelondev-stack/BUBU):** General-purpose AI worker offloading multi-file context analysis, architectural audits, and memory leak detection.
+- **[NEXUS](https://github.com/aethelondev-stack/NEXUS):** Always-on host coordinator managing task routing, provider quota (429/TPM) and rate limits, loop detection, and evidence aggregation.
+- **[ARGUS](https://github.com/aethelondev-stack/ARGUS):** Visual and computer interaction worker utilizing local GPU to prevent multimodal token bleeding.
 
 ---
 
